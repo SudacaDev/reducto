@@ -468,18 +468,31 @@ def install(target):
     if "cursor" in targets:
         cursor_dir = Path(".cursor")
         cursor_dir.mkdir(exist_ok=True)
-        # Cursor usa .cursor/mcp.json
+        
+        # 1. Configuración MCP correcta para Cursor
         _write_mcp_json(cursor_dir / "mcp.json", mcp_server_entry)
-        # Cursor también lee .cursorrules
-        rules_path = Path(".cursorrules")
-        cursor_rule = f"\n# Reducto\n{routing_rules}\n"
+        
+        # 2. Ubicación e instrucciones corregidas para las reglas de Cursor
+        rules_path = cursor_dir / ".cursorrules"  # <-- Corregido dentro de .cursor/
+        
+        cursor_rule = (
+            f"\n# Reducto Local Knowledge Graph Integration\n"
+            f"You have access to the 'reducto' MCP server. "
+            f"CRITICAL: {routing_rules}\n\n"
+            f"## Token Economy Rules:\n"
+            f"- NEVER read entire source files using cat/grep if you can achieve the same via Reducto tools.\n"
+            f"- Use `search_context` or `query` first to inspect the architecture landscape.\n"
+            f"- Request 'signature' or 'summary' of nodes before pulling full code snippets.\n"
+        )
+        
         if rules_path.exists():
             existing = rules_path.read_text(encoding="utf-8")
             if "reducto" not in existing.lower():
-                rules_path.write_text(existing + cursor_rule, encoding="utf-8")
+                rules_path.write_text(existing + "\n" + cursor_rule, encoding="utf-8")
         else:
             rules_path.write_text(cursor_rule, encoding="utf-8")
-        installed.append("Cursor (.cursor/mcp.json + .cursorrules)")
+            
+        installed.append("Cursor (.cursor/mcp.json + .cursor/.cursorrules)")
 
     # ------------------------------------------------------------------
     # Panel de resultado
