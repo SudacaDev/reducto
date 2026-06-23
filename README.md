@@ -28,19 +28,15 @@ Sin esto, Reducto usa un parser regex que funciona pero es menos preciso. Con tr
 
 ## Instalación
 
-### Opción 1: con pip (la más simple)
+### Actualizar a la última versión
 
 ```bash
-pip install git+https://github.com/SudacaDev/reducto.git --user
+pip install reducto-graph --upgrade --user
+# o con uv:
+uv tool install reducto-graph --force
 ```
 
-### Opción 2: con uv (más rápido)
-
-```bash
-uv tool install --from git+https://github.com/SudacaDev/reducto.git reducto
-```
-
-### Opción 3: clonar y instalar local
+### Opción 2: clonar y instalar local
 
 ```bash
 git clone https://github.com/SudacaDev/reducto.git

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reducto_graph"
-version = "0.2.1"
+version = "0.2.2"
 description = "Universal knowledge graph for LLMs — reduce tokens, not intelligence."
 readme = "README.md"
 license = { text = "MIT" }
