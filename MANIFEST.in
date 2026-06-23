@@ -1,0 +1,5 @@
+include README.md
+include LICENSE
+include .env.example
+include docker-compose.yml
+recursive-include reducto *.py py.typed

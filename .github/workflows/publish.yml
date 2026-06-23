@@ -1,0 +1,33 @@
+name: Publish to PyPI
+
+on:
+  release:
+    types: [published]   # Se dispara cuando creás un Release en GitHub
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: pypi         # Configurá este environment en GitHub Settings
+    permissions:
+      id-token: write         # Necesario para Trusted Publishing (sin API key)
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install build tools
+        run: pip install build twine
+
+      - name: Build package
+        run: python -m build
+
+      - name: Check package
+        run: twine check dist/*
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        # Usa Trusted Publishing — no necesitás API keys en secrets

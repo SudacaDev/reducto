@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "reducto"
+version = "0.1.0"
+description = "Universal knowledge graph for LLMs — reduce tokens, not intelligence."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [
+    { name = "Reducto", email = "hi@reducto.dev" }
+]
+keywords = [
+    "llm", "knowledge-graph", "tokens", "mcp", "claude",
+    "context", "codebase", "neo4j", "ai"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "networkx>=3.0",
+    "mcp>=1.0.0",
+    "click>=8.1",
+    "rich>=13.0",
+]
+
+[project.urls]
+Homepage      = "https://github.com/SudacaDev/reducto"
+Documentation = "https://github.com/SudacaDev/reducto#readme"
+Repository    = "https://github.com/SudacaDev/reducto"
+"Bug Tracker" = "https://github.com/SudacaDev/reducto/issues"
+
+[project.scripts]
+reducto = "reducto.cli:cli"
+
+# Permite `uv tool install reducto` y `pipx install reducto`
+[project.optional-dependencies]
+ast = [
+    "tree-sitter>=0.23",
+    "tree-sitter-python>=0.23",
+    "tree-sitter-javascript>=0.23",
+    "tree-sitter-typescript>=0.23",
+]
+dev = [
+    "build>=1.0",
+    "twine>=5.0",
+    "pytest>=8.0",
+    "ruff>=0.4",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["reducto*"]
+
+[tool.setuptools.package-data]
+reducto = ["py.typed", "assets/*.js"]
