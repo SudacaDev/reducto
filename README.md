@@ -1,4 +1,4 @@
-# Reducto 🧠
+# Reducto
 
 > Reduce tokens, not intelligence.
 
@@ -28,25 +28,48 @@ Sin esto, Reducto usa un parser regex que funciona pero es menos preciso. Con tr
 
 ## Instalación
 
-### Desde el repo (recomendado)
+### Opción 1: con pip (la más simple)
+
+```bash
+pip install git+https://github.com/SudacaDev/reducto.git --user
+```
+
+### Opción 2: con uv (más rápido)
+
+```bash
+uv tool install --from git+https://github.com/SudacaDev/reducto.git reducto
+```
+
+### Opción 3: clonar y instalar local
 
 ```bash
 git clone https://github.com/SudacaDev/reducto.git
 cd reducto
+pip install . --user
+# o con uv:
 uv tool install --from . reducto
 ```
 
-### Desde una carpeta local
+### Opcional: tree-sitter para parsing AST real
 
 ```bash
-cd /ruta/a/reducto
-uv tool install --from . reducto
+pip install tree-sitter tree-sitter-python tree-sitter-javascript tree-sitter-typescript --user
 ```
+
+Sin esto, Reducto funciona con regex (menos preciso). Con tree-sitter detecta CALLS reales (función→función).
 
 ### Verificar
 
 ```bash
 reducto --help
+```
+
+### Actualizar a la última versión
+
+```bash
+pip install git+https://github.com/SudacaDev/reducto.git --user --force-reinstall
+# o con uv:
+uv tool install --from git+https://github.com/SudacaDev/reducto.git reducto --force
 ```
 
 ## Primeros pasos
