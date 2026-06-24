@@ -444,6 +444,42 @@ def install(target):
         else:
             agents_md.write_text(agents_section, encoding="utf-8")
 
+        # Workflows (slash commands) para Antigravity
+        wf_dir = Path(".agent/workflows")
+        wf_dir.mkdir(parents=True, exist_ok=True)
+
+        (wf_dir / "reducto.md").write_text(
+            "---\n"
+            "description: Build or refresh the Reducto knowledge graph for this project.\n"
+            "---\n\n"
+            "1. Run `reducto ingest .` in the project root to update the knowledge graph.\n"
+            "2. Run `reducto context` and report the token-saving stats.\n"
+            "3. From now on, ALWAYS use the Reducto MCP tools (`search_context`, `get_dependencies`, `get_callers`) "
+            "before using any file search, grep, or read.\n",
+            encoding="utf-8",
+        )
+
+        (wf_dir / "reducto-query.md").write_text(
+            "---\n"
+            "description: Query the Reducto knowledge graph for a specific term.\n"
+            "---\n\n"
+            "1. Ask the user what they want to search for if not clear from context.\n"
+            "2. Use the `search_context` MCP tool from the \"reducto\" server with the query.\n"
+            "3. If no results, try 2-3 alternative English terms before falling back to grep.\n"
+            "4. Present the results clearly.\n",
+            encoding="utf-8",
+        )
+
+        (wf_dir / "reducto-visualize.md").write_text(
+            "---\n"
+            "description: Generate and open the visual knowledge graph.\n"
+            "---\n\n"
+            "// turbo\n"
+            "1. Run `reducto visualize` to generate the interactive graph HTML.\n"
+            "2. Tell the user to open `reducto-out/graph.html` in their browser.\n",
+            encoding="utf-8",
+        )
+
         # mcp_config.json global de Antigravity
         if os.name == "nt":  # Windows
             ag_config = Path.home() / ".gemini" / "antigravity" / "mcp_config.json"
@@ -451,7 +487,7 @@ def install(target):
             ag_config = Path.home() / ".gemini" / "antigravity" / "mcp_config.json"
         ag_config.parent.mkdir(parents=True, exist_ok=True)
         _write_mcp_json(ag_config, mcp_server_entry)
-        installed.append(f"Antigravity (AGENTS.md + {ag_config})")
+        installed.append(f"Antigravity (AGENTS.md + workflows + {ag_config})")
 
     # ------------------------------------------------------------------
     # VS Code

@@ -59,12 +59,23 @@ class ReductoGraph:
     def _find_project_root(start: Path) -> Path:
         """
         Sube por el árbol de directorios buscando una carpeta reducto-out/.
-        Si no encuentra ninguna, devuelve el directorio de inicio (fallback).
+        Se detiene si encuentra un marcador de raíz de proyecto (.git,
+        package.json, pyproject.toml) para no cruzar a otro proyecto.
         """
+        # Marcadores que indican la raíz de un proyecto
+        PROJECT_MARKERS = {".git", "package.json", "pyproject.toml", "Cargo.toml", "go.mod"}
+
         current = start.resolve()
         while True:
+            # ¿Este directorio tiene un grafo de Reducto?
             if (current / DEFAULT_OUT_DIR / GRAPH_FILE).exists():
                 return current
+
+            # ¿Este directorio es la raíz de un proyecto?
+            # Si sí, no seguir subiendo — este proyecto no tiene grafo aún
+            if any((current / marker).exists() for marker in PROJECT_MARKERS):
+                return current
+
             parent = current.parent
             if parent == current:  # llegamos a la raíz del filesystem
                 break

@@ -300,6 +300,116 @@ def visualize(out, no_open, limit):
         webbrowser.open(f"file://{output_path.resolve()}")
 
 
+# ---------------------------------------------------------------------------
+# reducto export
+# ---------------------------------------------------------------------------
+
+@cli.command(name="export")
+@click.option("--target", default="obsidian",
+              type=click.Choice(["obsidian"], case_sensitive=False),
+              help="Export format (default: obsidian)")
+@click.option("--out", default=None, help="Output directory")
+def export_graph(target, out):
+    """Export the knowledge graph to other formats.
+
+    Example: reducto export --target obsidian
+    """
+    from reducto.graph import ReductoGraph
+
+    graph = ReductoGraph()
+    graph.connect()
+
+    if target == "obsidian":
+        out_dir = Path(out) if out else graph.out_dir / "obsidian-vault"
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        # Construir un mapa de node_id → nombre seguro para archivos
+        node_names: dict[str, str] = {}
+        for node_id, attrs in graph.g.nodes(data=True):
+            name = attrs.get("name") or node_id.split("/")[-1]
+            kind = attrs.get("kind", "")
+            # Sanitizar para nombre de archivo
+            safe_name = name.replace("/", "_").replace("\\", "_").replace(":", "_").replace("<", "").replace(">", "")
+            # Evitar duplicados agregando el kind si hace falta
+            if safe_name in node_names.values():
+                safe_name = f"{safe_name} ({kind})"
+            node_names[node_id] = safe_name
+
+        # Invertir para buscar por nombre
+        id_by_name = {v: k for k, v in node_names.items()}
+
+        count = 0
+        for node_id, attrs in graph.g.nodes(data=True):
+            name = node_names[node_id]
+            kind = attrs.get("kind", "File")
+            state = attrs.get("state", "unknown")
+            file_path = attrs.get("file_path", "")
+            start_line = attrs.get("start_line", "")
+            community = attrs.get("community", -1)
+
+            # Construir contenido del archivo .md
+            lines = []
+            lines.append(f"# {name}")
+            lines.append("")
+            lines.append(f"**Kind:** {kind}  ")
+            lines.append(f"**State:** {state}  ")
+            if file_path:
+                lines.append(f"**File:** `{file_path}`  ")
+            if start_line:
+                lines.append(f"**Line:** {start_line}  ")
+            if community >= 0:
+                lines.append(f"**Community:** {community}  ")
+            lines.append("")
+
+            # Signature si está cacheada
+            views = attrs.get("views")
+            if isinstance(views, dict) and views.get("signature"):
+                lines.append("## Signature")
+                lines.append("```")
+                lines.append(views["signature"])
+                lines.append("```")
+                lines.append("")
+
+            # Edges salientes como wikilinks
+            outgoing = list(graph.g.out_edges(node_id, data=True))
+            if outgoing:
+                lines.append("## Connections")
+                lines.append("")
+                for _, target_id, edge_data in outgoing:
+                    relation = edge_data.get("relation", "→")
+                    target_name = node_names.get(target_id, target_id.split("/")[-1])
+                    lines.append(f"- **{relation}** → [[{target_name}]]")
+                lines.append("")
+
+            # Edges entrantes
+            incoming = list(graph.g.in_edges(node_id, data=True))
+            if incoming:
+                lines.append("## Referenced by")
+                lines.append("")
+                for source_id, _, edge_data in incoming:
+                    relation = edge_data.get("relation", "→")
+                    source_name = node_names.get(source_id, source_id.split("/")[-1])
+                    lines.append(f"- **{relation}** ← [[{source_name}]]")
+                lines.append("")
+
+            # Escribir el archivo
+            md_path = out_dir / f"{name}.md"
+            md_path.write_text("\n".join(lines), encoding="utf-8")
+            count += 1
+
+    graph.close()
+
+    console.print(Panel(
+        f"[green]✓ Exported![/green]\n\n"
+        f"  Format : [cyan]{target}[/cyan]\n"
+        f"  Notes  : [cyan]{count}[/cyan]\n"
+        f"  Path   : [cyan]{out_dir.resolve()}[/cyan]\n\n"
+        f"[dim]Open this folder in Obsidian as a vault (File → Open folder as vault).[/dim]",
+        title="[bold cyan]Reducto Export[/bold cyan]",
+        border_style="cyan",
+    ))
+
+
 @cli.command()
 @click.option("--target", default=None,
               type=click.Choice(["claude-code", "antigravity", "vscode", "cursor", "all"],
@@ -443,7 +553,8 @@ def install(target):
                 agents_md.write_text(existing.rstrip() + "\n\n" + agents_section, encoding="utf-8")
         else:
             agents_md.write_text(agents_section, encoding="utf-8")
-            # Workflows (slash commands) para Antigravity
+
+        # Workflows (slash commands) para Antigravity
         wf_dir = Path(".agent/workflows")
         wf_dir.mkdir(parents=True, exist_ok=True)
 
@@ -503,31 +614,18 @@ def install(target):
     if "cursor" in targets:
         cursor_dir = Path(".cursor")
         cursor_dir.mkdir(exist_ok=True)
-        
-        # 1. Configuración MCP correcta para Cursor
+        # Cursor usa .cursor/mcp.json
         _write_mcp_json(cursor_dir / "mcp.json", mcp_server_entry)
-        
-        # 2. Ubicación e instrucciones corregidas para las reglas de Cursor
-        rules_path = cursor_dir / ".cursorrules"  # <-- Corregido dentro de .cursor/
-        
-        cursor_rule = (
-            f"\n# Reducto Local Knowledge Graph Integration\n"
-            f"You have access to the 'reducto' MCP server. "
-            f"CRITICAL: {routing_rules}\n\n"
-            f"## Token Economy Rules:\n"
-            f"- NEVER read entire source files using cat/grep if you can achieve the same via Reducto tools.\n"
-            f"- Use `search_context` or `query` first to inspect the architecture landscape.\n"
-            f"- Request 'signature' or 'summary' of nodes before pulling full code snippets.\n"
-        )
-        
+        # Cursor también lee .cursorrules
+        rules_path = Path(".cursorrules")
+        cursor_rule = f"\n# Reducto\n{routing_rules}\n"
         if rules_path.exists():
             existing = rules_path.read_text(encoding="utf-8")
             if "reducto" not in existing.lower():
-                rules_path.write_text(existing + "\n" + cursor_rule, encoding="utf-8")
+                rules_path.write_text(existing + cursor_rule, encoding="utf-8")
         else:
             rules_path.write_text(cursor_rule, encoding="utf-8")
-            
-        installed.append("Cursor (.cursor/mcp.json + .cursor/.cursorrules)")
+        installed.append("Cursor (.cursor/mcp.json + .cursorrules)")
 
     # ------------------------------------------------------------------
     # Panel de resultado
