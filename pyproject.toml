@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reducto_graph"
-version = "0.2.62"
+version = "0.2.63"
 description = "Universal knowledge graph for LLMs — reduce tokens, not intelligence."
 readme = "README.md"
 license = { text = "MIT" }
@@ -64,3 +64,10 @@ include = ["reducto*"]
 
 [tool.setuptools.package-data]
 reducto = ["py.typed", "assets/*.js"]
+
+
+[tool.semantic_release]
+version_variable = ["pyproject.toml:version"]
+branch = "main"
+upload_to_pypi = false
+upload_to_release = true
