@@ -372,12 +372,44 @@ class ReductoGraph:
             "componentes":["component"],
         }
 
-        # Tokenizar la query: dividir por espacios, normalizar, expandir sinónimos
-        raw_tokens = [
-            t.lower().replace("-", "_").replace("\\", "/")
-            for t in name.split()
-            if len(t) >= 2  # ignorar palabras muy cortas
-        ]
+        # Stop words — palabras que no aportan nada a la búsqueda
+        STOP_WORDS = {
+            # Español
+            "que", "hace", "como", "donde", "cuando", "cual", "cuales",
+            "los", "las", "del", "una", "uno", "unos", "unas",
+            "por", "para", "con", "sin", "sobre", "entre", "desde",
+            "este", "esta", "estos", "estas", "ese", "esa",
+            "hay", "tiene", "son", "esta", "estan", "ser", "estar",
+            "todo", "todos", "toda", "todas", "otro", "otra", "otros",
+            "bien", "mal", "mas", "muy", "algo", "nada", "cada",
+            "pero", "porque", "sino", "tambien", "además",
+            "proyecto", "archivo", "archivos", "funcion", "funciones",
+            "clase", "clases", "codigo", "código",
+            # English
+            "the", "what", "does", "how", "this", "that", "which",
+            "and", "for", "with", "from", "into", "about",
+            "are", "was", "were", "been", "being",
+            "have", "has", "had", "having",
+            "not", "all", "any", "some", "each",
+            "can", "could", "should", "would", "will",
+            "file", "files", "function", "functions", "class", "classes",
+            "code", "project",
+        }
+
+        # Tokenizar la query: dividir por espacios, normalizar, filtrar stop words
+        raw_tokens = []
+        for t in name.split():
+            t_clean = t.lower().replace("-", "_").replace("\\", "/").strip("¿?¡!.,;:")
+            if len(t_clean) < 2:
+                continue
+            # Detectar si es un filename (tiene extensión)
+            if "." in t_clean and t_clean.split(".")[-1] in ("ts", "tsx", "js", "jsx", "py", "md", "json", "css"):
+                # Agregar tanto el filename completo como el nombre sin extensión
+                raw_tokens.append(t_clean)
+                raw_tokens.append(t_clean.rsplit(".", 1)[0])
+                continue
+            if t_clean not in STOP_WORDS:
+                raw_tokens.append(t_clean)
         if not raw_tokens:
             return []
 
