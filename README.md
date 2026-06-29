@@ -1,4 +1,4 @@
-# Reducto
+# Reducto 🧠
 
 > Reduce tokens, not intelligence.
 
@@ -28,22 +28,22 @@ Sin esto, Reducto usa un parser regex que funciona pero es menos preciso. Con tr
 
 ## Instalación
 
-### Actualizar a la última versión
+### Opción 1: con pip (la más simple)
 
 ```bash
-pip install reducto-graph --upgrade --user
-# o con uv:
-uv tool install reducto-graph --force
+pip install reducto-graph --user
 ```
 
-### Opción 2: clonar y instalar local
+### Opción 2: con uv (más rápido)
 
 ```bash
-git clone https://github.com/SudacaDev/reducto.git
-cd reducto
-pip install . --user
-# o con uv:
-uv tool install --from . reducto
+uv tool install reducto-graph
+```
+
+### Opción 3: desde GitHub directo
+
+```bash
+pip install git+https://github.com/SudacaDev/reducto.git --user
 ```
 
 ### Opcional: tree-sitter para parsing AST real
@@ -63,9 +63,9 @@ reducto --help
 ### Actualizar a la última versión
 
 ```bash
-pip install git+https://github.com/SudacaDev/reducto.git --user --force-reinstall
+pip install reducto-graph --upgrade --user
 # o con uv:
-uv tool install --from git+https://github.com/SudacaDev/reducto.git reducto --force
+uv tool install reducto-graph --force
 ```
 
 ## Primeros pasos
